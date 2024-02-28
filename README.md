@@ -21,7 +21,7 @@ DistributivityR2 : lambda ( x + y ) = ( lambda x ) + ( lambda y )
 
 DistributivityR0 : lambda 0 = 0
 
-DistributivityL1 : (lambda + mu) x = (lambda x) + (mu x)
+DistributivityL2 : (lambda + mu) x = (lambda x) + (mu x)
 
 Distributi
 
