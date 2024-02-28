@@ -10,4 +10,6 @@ Action Law 1 : ( lambda mu ) x = lambda ( mu x )
 
 Action Law 2 : 1 x = x
 
+Distributivity : lambda ( x + y ) = ( lambda x ) + ( lambda y )
+
 
