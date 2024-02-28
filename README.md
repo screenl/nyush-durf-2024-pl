@@ -25,6 +25,7 @@ DistributivityL2 : (lambda + mu) x = (lambda x) + (mu x)
 
 Distributi
 
-
+In many situations of interest, we do not have a vector space but a notion of space where only barycentric addition is defined.
+A typical example is the set of probability distributions on a finite set.
 
 
