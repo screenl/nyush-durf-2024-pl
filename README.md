@@ -6,7 +6,7 @@ The purpose of the DURF project will be to formalize in the proof assistant Coq
 a number of fundamental properties satisfied by barycentric spaces.
 A barycentric space is a generalisation of the notion of real vector space,
 defined axiomatically as sets equipped with a barycentric notion of addition.
-We will formally establish a result by Ehrhard-Mellies-Theron which provides
+We will formally establish a result by Ehrhard-Mellies-Theorem which provides
 sufficient and necessary conditions for a barycentric space to be faithfully
 embedded in a real vector space.
 
