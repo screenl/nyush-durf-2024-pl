@@ -6,5 +6,5 @@ A real vector space V is a set equipped with an addition V x V --> V and a scala
 
 Associativity: ( x + y ) + z = x + ( y + z )
 
-Action Law : ( lambda x mu ) 
+Action Law : ( lambda mu ) x = lambda ( mu x )
 
