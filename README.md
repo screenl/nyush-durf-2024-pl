@@ -1,5 +1,16 @@
 # nyush-durf-2024-pl
 
+Axiomatic Foundations of Convex Analysis in Proof Assistants
+
+The purpose of the DURF project will be to formalize in the proof assistant Coq
+a number of fundamental properties satisfied by barycentric spaces.
+A barycentric space is a generalisation of the notion of real vector space,
+defined axiomatically as sets equipped with a barycentric notion of addition.
+We will formally establish a result by Ehrhard-Mellies-Theron which provides
+sufficient and necessary conditions for a barycentric space to be faithfully
+embedded in a real vector space.
+
+
 The well-established notion of real vector space defined axiomatically as follows.
 
 A commutative monoid is a set M equipped with a binary operation + : M x M --> M and an element 0 such that
