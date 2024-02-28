@@ -28,4 +28,28 @@ Distributi
 In many situations of interest, we do not have a vector space but a notion of space where only barycentric addition is defined.
 A typical example is the set of probability distributions on a finite set.
 
+A barycentric space is required to satisfy four parametrized families
+of equations:
+\begin{center}
+\begin{tabular}{cl}
+$\barysum{0}{a}{b} = a$ &
+\\
+$\barysum{\ratio}{a}{a} = a$ &
+\\
+$\barysum{\ratio}{a}{b} = \barysum{1-\ratio}{b}{a}$ &
+\\
+%$\barysum{\ratio}{x}{(\barysum{1-\ratiob}{y}{z})}=\barysum{\ratiod}{(\barysum{1-\ratioc}{x}{y})}{z}$
+%&
+%whenever $\ratiod=\ratio(1-\ratiob)$ and $\ratio\ratiob=\ratiod\ratioc$.
+%\\
+$\barysum{\ratio}{a}{(\barysum{\ratiob}{b}{c})}=\barysum{\ratiod}{(\barysum{\ratioc}{a}{b})}{c}$
+&
+if $\ratiod=\ratio\ratiob$ and $\ratio(1-\ratiob)=\ratioc(1-\ratiod)$
+\end{tabular}
+\end{center}
+for all $\ratio,\ratiob,\ratioc\in\interval$ and for all $a,b,c\in\baryspace$.
+%
+Note that $\barysum{1}{a}{b}=b$ as a consequence of the first and third equations,
+and that the fourth equation holds precisely when $\ratiod=\ratio\ratiob=1$ and ($\ratiod=\ratio\ratiob\neq 1$ 
+and $\ratioc=\frac{\ratio-\ratio\ratiob}{1-\ratio\ratiob}$).
 
