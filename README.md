@@ -10,8 +10,11 @@ We will formally establish a result by Ehrhard-Mellies-Theron which provides
 sufficient and necessary conditions for a barycentric space to be faithfully
 embedded in a real vector space.
 
-What needs to be done: find the existing libraries in Coq and Lean.
 We can see how we can certify linear programming algorithms.
+And/or study probabilistic automata and probabilistic languages.
+
+What needs to be done: find the existing libraries in Coq and Lean.
+
 
 The well-established notion of real vector space defined axiomatically as follows.
 
