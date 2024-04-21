@@ -24,8 +24,8 @@ An interval $\mathbb{P}$ is a set with:
 
 Notation: $p \Rightarrow q := \overline p \vee q$
 
-A $\mathbb{P}$-barycentric space $(\Omega,+_p)$ is a set with $+_p: \mathbb{P} \rightarrow \Omega \rightarrow \Omega \rightarrow \Omega$
-1. $a+_pb = b+_{\overline p}a$
+A $\mathbb{P}$-barycentric space $(\Omega,+_p)$ is a set with $+_p: \mathbb{P} \rightarrow \Omega \rightarrow \Omega \rightarrow \Omega$.
+1. $a+_p b = b+_{\overline p}a$
 2. $a+_1b = a$
 3. $a+_pa=a$
 4. $a+_p(b+_qc) = (a+_rb)+_sc$ when $p = r \wedge s, s = p \vee q, q \Rightarrow p = s \Rightarrow r$
@@ -37,13 +37,13 @@ $(x,y)+_p(x’,y’) = (x+_px,y+_py’)$
 
 **Proposition 2**: suppose $\sim$ is an equivalence relation on $\mathbb{P}$-barycentric space $X$ s.t. $x+_px \sim x’+_py’$ when $x\sim x’$ and $y\sim y’$, $X/\sim$ is a $\mathbb{P}$-barycentric space.
 
-Construction of the _cone_ $X_*$ of a barycentric space $X$.
-$X_* = \{ (p,x)| p \in P, x \in X\} / (1,x) = (1,x’)$
-$X_* = P \times X /\sim$ where $(1,x)\sim(1,x’)$; thus $X_*$ is $\mathbb{P}$-barycentric.
+Construction of the _cone_ $X_\*$ of a barycentric space $X$.
+$X_\* = \{ (p,x)| p \in P, x \in X\} / (1,x) = (1,x’)$
+$X_\* = P \times X /\sim$ where $(1,x)\sim(1,x’)$; thus $X_\*$ is $\mathbb{P}$-barycentric.
 
-**Proposition 3**: $X \mapsto X_*$ is functorial.
+**Proposition 3**: $X \mapsto X_\*$ is functorial.
 
-**Proposition 4**: $1_* = P$
+**Proposition 4**: $1_\* = P$
 
-**Proposition 5**: $X_**$ is automorphic.
+**Proposition 5**: $X_{\*\*}$ is automorphic.
 
