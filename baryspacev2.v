@@ -3,6 +3,8 @@ From HB Require Import structures.
 Require Import Unicode.Utf8.
 Require Import Bool.Bool.
 
+(*Commutative Monoids*)
+
 HB.mixin Record CMonoid_of M := {
   id : M;
   add : M -> M -> M;
@@ -11,40 +13,11 @@ HB.mixin Record CMonoid_of M := {
   addl0 : left_id id add;
 }.
 
-HB.structure Definition Monoid := { M of CMonoid_of M }.
-HB.instance Definition Z_CMonoid := CMonoid_of.Build Z
-    0%Z Z.add Z.add_assoc Z.add_comm Z.add_0_l.
+HB.structure Definition CMonoid := { M of CMonoid_of M }.
 
-Print Z_CMonoid.
-(* 
-HB.mixin Record JMonoid_of M := {
-  zero : M;
-  join : M -> M -> M;
-  joinrA : associative join;
-  joinrC : commutative join;
-  joinl0 : left_id zero join;
-}.
-
-HB.structure Definition JMonoid := { M of JMonoid_of M }.
-
-HB.mixin Record MMonoid_of M := {
-  one : M;
-  meet : M -> M -> M;
-  meetrA : associative meet;
-  meetrC : commutative meet;
-  meetl0 : left_id one meet;
-}.
-
-HB.structure Definition MMonoid := { M of MMonoid_of M }.
-
-HB.mixin Record Interval_of I of JMonoid_of I of MMonoid_of I:= {
-  inv : I -> I;
-  inv_inv : ∀ i, inv (inv i) = i;
-  inv_de_morgan_l : ∀ p q, inv (join p q) = meet (inv p) (inv q);
-}. *)
+(*Interval Structure*)
 
 HB.mixin Record Interval_of I:= {
-
   zero : I;
   join : I -> I -> I;
   joinrA : associative join;
@@ -67,14 +40,12 @@ HB.structure Definition Interval := { I of Interval_of I}.
 Lemma id_unique: ∀ {T: Type} (f: T -> T -> T) (i1 i2: T),
 (∀ s, f s i1 = s) -> (∀ s, f i2 s = s) -> (i1=i2).
 Proof.
-intros.
-rewrite <- (H i2). rewrite H0. auto.
+  intros.
+  rewrite <- (H i2). rewrite H0. auto.
 Qed.
-
 
 Notation "0" := zero.
 Notation "1" := one.
-Infix "+" := add.
 Infix "|" := join (at level 10).
 Infix "&" := meet (at level 10).
 Notation "!" := inv.
@@ -114,8 +85,9 @@ false orb orb_assoc orb_comm orb_false_l
 true andb andb_assoc andb_comm andb_true_l
 negb negb_involutive negb_orb.
 
-HB.mixin Record Baryspace_of A:= {
-  I : Interval.type;
+(*Barycentric Space*)
+
+HB.mixin Record Baryspace_of (I : Interval.type) A := {
   barysum : I -> A -> A -> A;
   barysum1 : ∀ a b, barysum 1 a b = a;
   barysumid : ∀ a p, barysum p a a = a;
@@ -125,7 +97,11 @@ HB.mixin Record Baryspace_of A:= {
       barysum p a (barysum q b c) = barysum s (barysum r a b) c;
 }.
 
-HB.structure Definition Baryspace := { A of Baryspace_of A}.
+HB.structure Definition Baryspace I := { A of Baryspace_of I A}.
+
+Lemma barysum0 {I : Interval.type} {B: Baryspace.type I} (a b: B): barysum 0 a b = b.
+intros. rewrite barysuminv. rewrite <- inv_1_0. apply barysum1. 
+Qed.
 
 (*Example: 2-to-1 mux is convex algebra*)
 
@@ -151,7 +127,7 @@ destruct r; simpl; intros; auto;
 discriminate. Qed.
 
 HB.instance Definition badd_is_bary := Baryspace_of.Build
-nat bool badd badd1 baddid baddinv baddassoc.
+bool nat badd badd1 baddid baddinv baddassoc.
 
 (*P is P-barycentric ?*)
 
@@ -169,11 +145,50 @@ intros. unfold P_add_P. Abort.
 (* HB.instance Definition P_is_P_barycentric {I : Interval.type} := 
   Baryspace_of.Build I I P_add_P . 
   
-  This does not work.
-  
-  *)
+  This does not work with the current formulation.*)
+
+(*Product of baryspaces is barycentric*)
+
+Definition prodBarysum {I: Interval.type} {A B: Baryspace.type I} : (I->A*B->A*B->A*B) := 
+  fun p p1 p2 => match p1 with
+    | (a1,b1) => match p2 with
+    | (a2,b2) => (barysum p a1 a2, barysum p b1 b2)
+    end
+  end.
+
+Lemma prod_add1 {I: Interval.type} {A B: Baryspace.type I}: ∀ (p1 p2: A*B),
+  prodBarysum 1 p1 p2 = p1.
+Proof.
+  intros.
+  destruct p1. destruct p2. simpl. 
+  rewrite !barysum1. reflexivity.
+Qed.
+
+Lemma prod_addid {I: Interval.type} {A B: Baryspace.type I}: ∀  (p1: A*B) (p:I),
+  prodBarysum p p1 p1 = p1.
+Proof.
+  intros. destruct p1. simpl.
+  rewrite !barysumid. reflexivity.
+Qed.
+
+Lemma prod_addinv {I: Interval.type} {A B: Baryspace.type I}: ∀ (p1 p2: A*B) (p:I) ,
+  prodBarysum p p1 p2 = prodBarysum (!p) p2 p1.
+Proof.
+  intros. destruct p1. destruct p2. simpl. 
+  rewrite <- !barysuminv. reflexivity.
+Qed.
+
+Lemma prod_addassoc {I: Interval.type} {A B: Baryspace.type I}: 
+    ∀ (a b c: A*B) p q r s, 
+    p = s & r -> s = p | q -> q ⇒ p = s ⇒ r ->  
+      prodBarysum p a (prodBarysum q b c) = prodBarysum s (prodBarysum r a b) c.
+Proof.
+  intros. destruct a, b, c. simpl. 
+  f_equal; apply barysumassoc; assumption. 
+Qed.
+
+HB.instance Definition prod_is_bary {I: Interval.type} {A B: Baryspace.type I} := Baryspace_of.Build
+I (prod A B) prodBarysum prod_add1 prod_addid prod_addinv prod_addassoc.
 
 
-
-
-
+Check Baryspace.on (prod nat nat).
