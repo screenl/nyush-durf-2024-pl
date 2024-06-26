@@ -217,6 +217,10 @@ Record type_quotient (T : Type) (eqv : T -> T -> Prop)
     exists x : T, c = class x
 }.
 
+(*The existence of such quotient structure is given by an axiom,
+as in Cyril Cohen's work.
+*)
+
 Axiom quotient : forall (T : Type) (eqv : T -> T -> Prop) (p: equiv T eqv), 
   (type_quotient T eqv p).
 
@@ -291,7 +295,6 @@ Definition quotBarysum {I: Interval.type} {A: Baryspace.type I}
       (Qs be) -> (Qs be) -> (Qs be) := 
         fun xc => quo_lift _ (quot_sum_part2 I A be p xc) (quot_sum_part2_compat be p xc).
 
-
 (*
 The barycentric sum on the quotient space has the property that
 [x] +_r [y] = [x +_r y]
@@ -360,120 +363,3 @@ Qed.
 
 Definition quot_is_bary {I: Interval.type} {A: Baryspace.type I} (be: BEquiv I A) := Baryspace_of.Build 
 I (Qs be) (quotBarysum be) (quot_add1 be) (quot_addid be) (quot_addinv be) (quot_addassoc be). 
-
-
-(* Definition quot_sum_compat {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} (qs: type_quotient A eqv Hequiv) : Prop := 
-    ∀ (x y x' y': A) (p: I), eqv x x' -> eqv y y' -> eqv (barysum p x y) (barysum p x' y').
-
-Definition quot_sum_part {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} (qs: type_quotient A eqv Hequiv) (p: I): (A -> A -> qs) :=
-  fun a1 a2 => (class qs) (barysum p a1 a2).
-
-Lemma quot_sum_part1_compat {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} {qs: type_quotient A eqv Hequiv} (p: I): 
-    quot_sum_compat qs -> compatible _ _ eqv (quot_sum_part qs p). 
-Proof.
-unfold compatible. 
-intros. apply functional_extensionality. intros. 
-unfold quot_sum_part. unfold quot_sum_compat in H. 
-apply quo_comp. apply H. apply H0. destruct Hequiv. 
-apply r. 
-Qed.
-
-
-Definition quot_sum_lift1 {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} (qs: type_quotient A eqv Hequiv) (Hcomp: quot_sum_compat qs) (p: I): 
-    qs -> A -> qs := 
-      quo_lift _ (quot_sum_part qs p) (quot_sum_part1_compat p Hcomp).
-
-Definition quot_sum_part2 {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs) (p: I) 
-    (ac: qs): A -> qs := 
-        (quot_sum_lift1 qs Hcomp p) ac.
-
-Lemma quot_sum_part2_compat {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop}
-  {Hequiv : equiv A eqv} {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs) (p: I) (ac: qs): 
-    compatible _ _ eqv (quot_sum_part2 Hcomp p ac). 
-Proof.
-unfold compatible.
-intros. 
-unfold quot_sum_part2. 
-unfold quot_sum_lift1. unfold quot_sum_part. specialize (quo_surj _ _ _ qs ac) as Hs.
-destruct Hs. rewrite H0. 
-rewrite (quo_lift_prop _ _ _ qs (A->qs) _ (quot_sum_part1_compat p Hcomp)). 
-unfold quot_sum_part. apply quo_comp. apply Hcomp. 
-- destruct Hequiv. apply r. 
-- apply H.
-Qed.
-
-Definition quotBarysum {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs): 
-    (I -> qs -> qs ->qs) := 
-      fun p xc => quo_lift _ (quot_sum_part2 Hcomp p xc) (quot_sum_part2_compat Hcomp p xc).
-
-Lemma quotBarysum_corrresponds {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs) (p: I) (a b: A):
-    qs (barysum p a b) = quotBarysum Hcomp p (qs a) (qs b).
-Proof.
-unfold quotBarysum. unfold quot_sum_part2. unfold quot_sum_lift1. unfold quot_sum_part. 
-rewrite (quo_lift_prop _ _ _ qs (qs) _ (quot_sum_part2_compat Hcomp p (qs a))). 
-unfold quot_sum_part2. unfold quot_sum_lift1. unfold quot_sum_part.
-rewrite (quo_lift_prop _ _ _ qs (A->qs) _ (quot_sum_part1_compat p Hcomp)). 
-unfold quot_sum_part. reflexivity.
-Qed.
-
-Definition quot_add1 {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs): ∀ (ac bc: qs),
-    (quotBarysum Hcomp) 1 ac bc = ac.
-Proof. 
-intros.
-specialize (quo_surj _ _ _ qs ac) as H1.
-specialize (quo_surj _ _ _ qs bc) as H2.
-destruct H1, H2. rewrite H H0. 
-rewrite <- quotBarysum_corrresponds. rewrite barysum1.
-reflexivity.
-Qed.
-
-Definition quot_addid {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs): ∀ (ac: qs) (p: I),
-    (quotBarysum Hcomp) p ac ac = ac.
-Proof. 
-intros.
-specialize (quo_surj _ _ _ qs ac) as H1.
-destruct H1. rewrite H. 
-rewrite <- quotBarysum_corrresponds. rewrite barysumid.
-reflexivity.
-Qed.
-
-Definition quot_addinv {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs): ∀ (ac bc: qs) (p: I),
-    (quotBarysum Hcomp) p ac bc = (quotBarysum Hcomp) (inv p) bc ac.
-Proof.
-intros.
-specialize (quo_surj _ _ _ qs ac) as H1.
-specialize (quo_surj _ _ _ qs bc) as H2.
-destruct H1, H2. rewrite H H0. 
-rewrite <- !quotBarysum_corrresponds. f_equal. 
-apply barysuminv.
-Qed.
-
-Definition quot_addassoc {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs): ∀ (ac bc cc: qs) (p q r s: I),
-    p = s & r -> s = p | q -> q ⇒ p = s ⇒ r ->  
-    (quotBarysum Hcomp) p ac ((quotBarysum Hcomp) q bc cc) = (quotBarysum Hcomp) s ((quotBarysum Hcomp) r ac bc) cc.
-Proof.
-intros.
-specialize (quo_surj _ _ _ qs ac) as H2.
-specialize (quo_surj _ _ _ qs bc) as H3.
-specialize (quo_surj _ _ _ qs cc) as H4.
-destruct H2, H3, H4. rewrite H2 H3 H4. 
-rewrite <- !quotBarysum_corrresponds. f_equal. apply barysumassoc;
-assumption.
-Qed.
-
-Definition quot_is_bary {I: Interval.type} {A: Baryspace.type I} {eqv : A -> A -> Prop} {Hequiv : equiv A eqv}
-  {qs: type_quotient A eqv Hequiv} (Hcomp: quot_sum_compat qs) := Baryspace_of.Build 
-I qs (quotBarysum Hcomp) (quot_add1 Hcomp) (quot_addid Hcomp) (quot_addinv Hcomp) (quot_addassoc Hcomp). 
- *)
-
