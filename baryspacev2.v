@@ -192,7 +192,11 @@ I (prod A B) prodBarysum prod_add1 prod_addid prod_addinv prod_addassoc.
 
 Check Baryspace.on (prod nat nat).
 
-(*Quotient space is barycentric*)
+(*
+For every equivalence relation ~ on a barycentric space A on I
+such that x ~ x' and y ~ y' implies x +_p y ~ x' +_p y'.
+There is a barycentric space A / ~ on I.
+*)
 
 From Coq Require Import Arith Relations Program Logic.
 
@@ -229,6 +233,13 @@ Record BEquiv {I : Interval.type} {A : Baryspace.type I} := instBequiv{
   Qs := quotient A R Equiv
 }.
 
+(*
+The barycentric sum on the quotient space A/~ is defined 
+by composing the class function with the barycentric sum on A 
+and then lifting it twice
+i.e. lift lift (class . barysum)
+*)
+
 Definition quot_sum_compat {I: Interval.type} {A: Baryspace.type I} (be: BEquiv) : Prop := 
     ∀ (x y x' y': A) (p: I), (R be) x x' -> (R be) y y' -> (R be) (barysum p x y) (barysum p x' y').
 
@@ -249,7 +260,6 @@ apply quo_comp. apply (Compat be). apply H. destruct (Equiv be).
 apply H0. 
 Qed.
 
-
 Definition quot_sum_lift1 {I: Interval.type} {A: Baryspace.type I} (be: BEquiv) (p: I): 
     (Qs be) -> A -> (Qs be)  := 
       quo_lift _ (quot_sum_part I A be p) (quot_sum_part1_compat be p).
@@ -258,7 +268,6 @@ Definition quot_sum_part2 (I: Interval.type) (A: Baryspace.type I)
     (be: BEquiv) (p: I) 
     (ac: (Qs be)): A -> (Qs be) := 
         (quot_sum_lift1 be p) ac.
-
 
 Lemma quot_sum_part2_compat {I: Interval.type} {A: Baryspace.type I} 
   (be: BEquiv) (p: I) (ac: Qs be): 
@@ -281,6 +290,12 @@ Definition quotBarysum {I: Interval.type} {A: Baryspace.type I}
     (be: BEquiv I A) (p: I): 
       (Qs be) -> (Qs be) -> (Qs be) := 
         fun xc => quo_lift _ (quot_sum_part2 I A be p xc) (quot_sum_part2_compat be p xc).
+
+
+(*
+The barycentric sum on the quotient space has the property that
+[x] +_r [y] = [x +_r y]
+*)
 
 Lemma quotBarysum_corrresponds {I: Interval.type} {A: Baryspace.type I}
   (be: BEquiv I A) (p: I) (a b: A):
