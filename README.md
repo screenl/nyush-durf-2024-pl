@@ -38,7 +38,6 @@ $(x,y)+_p(x’,y’) = (x+_px,y+_py’)$
 **Proposition 2**: suppose $\sim$ is an equivalence relation on $\mathbb{P}$-barycentric space $X$ s.t. $x+_px \sim x’+_py’$ when $x\sim x’$ and $y\sim y’$, $X/\sim$ is a $\mathbb{P}$-barycentric space.
 
 Construction of the _cone_ $X_\*$ of a barycentric space $X$.
-$X_\* = \{ (p,x)| p \in P, x \in X\} / (1,x) = (1,x’)$
 $X_\* = P \times X /\sim$ where $(1,x)\sim(1,x’)$; thus $X_\*$ is $\mathbb{P}$-barycentric.
 
 **Proposition 3**: $X \mapsto X_\*$ is functorial.
