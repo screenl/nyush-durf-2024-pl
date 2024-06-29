@@ -230,6 +230,62 @@ Arguments quo_lift {T} {eqv} {Hequiv} _ {R}.
 
 Check quo_lift.
 
+(*
+TODO: Establish the universal property 
+that allows the lifting of binary function on a quotient set
+*)
+
+
+Definition equiv_prod {A B: Type} (rA : A -> A -> Prop) (rB : B -> B -> Prop)
+ : (A*B) -> (A*B) -> Prop := fun p1 p2 => 
+  match p1 with | (a1,b1) =>
+    match p2 with | (a2,b2) => 
+      (rA a1 a2) ∧ (rB b1 b2)
+    end
+  end.
+
+Definition equiv_prod_equiv {A B: Type}  (rA : A -> A -> Prop) (rB : B -> B -> Prop)
+  (eqvA: equiv A rA) (eqvB: equiv B rB) : equiv (A*B) (equiv_prod rA rB).
+Proof.
+Admitted.
+
+Definition prod_quo {A B: Type} (rA : A -> A -> Prop) (rB : B -> B -> Prop)
+  (eqvA: equiv A rA) (eqvB: equiv B rB) : type_quotient (A*B) (equiv_prod rA rB) 
+  (equiv_prod_equiv rA rB eqvA eqvB). (*:= ... *)
+Admitted.
+
+Definition compat2 {A B C: Type} (f: (A*B) -> C) (rA: A -> A -> Prop) (rB: B -> B -> Prop) 
+  : Prop := ∀ a a' b b', rA a a' -> rB b b' -> f (a,b) = f (a',b').
+
+Definition lift2 {A B C: Type} {rA: A -> A -> Prop} {rB: B -> B -> Prop}
+  {eqvA: equiv A rA} {eqvB: equiv B rB} (qA: type_quotient A rA eqvA) (qB: type_quotient B rB eqvB) 
+  (f: (A*B) -> C) (Hcompat: compat2 f rA rB): (qA*qB) -> C.
+(*:= ... *)
+(* Define this using quo_lift *)
+Admitted.
+
+Definition prod_quo_map {A B: Type} {rA: A -> A -> Prop} {rB: B -> B -> Prop}
+  {eqvA: equiv A rA} {eqvB: equiv B rB} (qA: type_quotient A rA eqvA) (qB: type_quotient B rB eqvB) 
+  : ((qA*qB)->prod_quo rA rB eqvA eqvB).
+(* :=...*)
+(* Define this using lift2 *)
+Admitted.
+
+Definition quo_prod_map {A B: Type} {rA: A -> A -> Prop} {rB: B -> B -> Prop}
+  {eqvA: equiv A rA} {eqvB: equiv B rB} (qA: type_quotient A rA eqvA) (qB: type_quotient B rB eqvB) 
+  : (prod_quo rA rB eqvA eqvB -> (qA*qB)).
+(* :=... *)
+Admitted.
+
+Theorem prod_quo_isomorphic {A B: Type} {rA: A -> A -> Prop} {rB: B -> B -> Prop}
+  {eqvA: equiv A rA} {eqvB: equiv B rB} (qA: type_quotient A rA eqvA) (qB: type_quotient B rB eqvB) :
+  ∀ a b, (quo_prod_map qA qB) ( (prod_quo_map qA qB) (a,b)) = (a,b).
+Proof.
+Admitted.
+
+
+(*The equivalence relation on a barycentric space*)
+
 Record BEquiv {I : Interval.type} {A : Baryspace.type I} := instBequiv{
   R : A -> A -> Prop;
   Equiv : equiv _ R;
