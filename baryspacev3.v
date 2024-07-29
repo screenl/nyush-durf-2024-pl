@@ -176,6 +176,14 @@ HB.mixin Record BInterval_of I of _BaryIntv_of I of Interval_of I:= {
     barysum r x (barysum s y z)  = barysum  (meet r s) (barysum (bracket r 1 (!s)) x y) z;
   bracket_inv: ∀ r s t, !(bracket t r s) = bracket (!t) s r;
   bracket_dist: ∀ a b r s t, bracket t (meet a r) (meet b s) = bracket (bracket t a b) r s;
+  (*to be determined*)
+  bracket_zero: ∀ a b c, meet a b = 0 -> bracket a b c = 0;
+  bracket_decomp1: ∀ p q r s (x y z: _BaryIntv.sort I), s = meet p q -> meet p (!q) = meet r (!s) ->  
+    meet (bracket r x y) (!(bracket s (barysum r x y) z)) = 
+      meet (bracket p x (barysum q y z)) (!(bracket q y z));
+  bracket_decomp2: ∀ p q r s (x y z: _BaryIntv.sort I), s = meet p q -> meet p (!q) = meet r (!s) ->  
+    (bracket s (barysum r x y) z) = 
+      meet (bracket p x (barysum q y z)) (bracket q y z)
 }.
 
 HB.structure Definition BInterval := { I of BInterval_of I &}.
@@ -250,7 +258,7 @@ Definition barysumI {I: BInterval.type} (t r s: I): (I) :=
   barysum t (r:_BaryIntv.sort I) s.
 
 Theorem barysum_2: ∀ (I: BInterval.type) (A: Baryspace.type I) 
-  (x x' y y': A) (r s t: I), barysumI t r s <> 0 -> barysumI t r s <> 1 -> 
+  (x x' y y': A) (r s t: I), barysumI t r s <> 0 -> 
   barysum t (barysum r x y) (barysum s x' y')
     = barysum (barysumI t r s) (barysum (bracket t (!r) (!s)) x x') (barysum (bracket t r s) y y').
 Proof. 
@@ -267,12 +275,12 @@ Proof.
     rewrite <- (bracket_assoc1 (_BaryIntv.sort I) 1). rewrite <- barysuminv.
     rewrite <- (meet_sum0 r). rewrite meetrC. rewrite meetl1. reflexivity.
   }
-  rewrite H1.
+  rewrite H0.
   assert ((bracket (bracket t (! r) 1) 1 (! s)) = bracket t (!r) (!s)).
   {
     rewrite <- bracket_dist. rewrite (meetrC (!r) 1). rewrite !meetl1. reflexivity.
   }
-  rewrite H2.
+  rewrite H1.
   rewrite inv_inv.
   assert ((bracket (join (! r) t) 1 (meet (bracket t (! r) 1)s)) = bracket t r s).
   {
@@ -284,14 +292,87 @@ Proof.
       rewrite bracket_basic. rewrite meetrA. rewrite (meetrC (barysumI t (! r) 1)). 
       rewrite bracket_basic. rewrite (meetrC t 1). rewrite meetl1. reflexivity.
     } 
-    rewrite meet_sum0 in H1. rewrite inv_bary_dist in H1. rewrite inv_inv in H1.
-    rewrite joinrC in H1. rewrite join_sum1 in H1. rewrite <- inv_1_0 in H1. rewrite H1 in H3.
+    rewrite meet_sum0 in H0. rewrite inv_bary_dist in H0. rewrite inv_inv in H0.
+    rewrite joinrC in H0. rewrite join_sum1 in H0. rewrite <- inv_1_0 in H0. rewrite H0 in H2.
     assert (meet t s = meet (bracket t r s) (barysumI t r s)). symmetry. apply bracket_basic.
-    rewrite H4 in H3. apply cancel in H3. rewrite <- (join_sum1 (I) (!r) (t)). rewrite joinrC. 
-    rewrite join_sum1. apply H3. apply H.
+    rewrite H3 in H2. apply cancel in H2. rewrite <- (join_sum1 (I) (!r) (t)). rewrite joinrC. 
+    rewrite join_sum1. apply H2. apply H.
   }
-  rewrite H3. reflexivity.
+  rewrite H2. reflexivity.
 Qed.
+
+(* Axiom Ieqb: ∀ {I: BInterval.type} (a b: I), bool.
+Axiom IeqbRefl: ∀ {I: BInterval.type} (a b: I), (a=b) ↔ Ieqb a b = true.
+
+Theorem IeqbRefl': ∀ {I: BInterval.type} (a b: I), a<>b ↔ Ieqb a b = false.
+Proof.
+split. intros. 
+destruct (Ieqb a b) eqn:Hab. rewrite <- IeqbRefl in Hab. contradiction. reflexivity.
+intros. rewrite IeqbRefl. destruct (Ieqb a b) eqn:Hab. discriminate. auto.
+Qed. *)
+
+
+Inductive SumBarySpace {I: BInterval.type} (A B: Baryspace.type I) :=
+| Tuple (a: A) (p: I) (b: B).
+
+
+Notation "( a , b , c )" := (Tuple _ _ a b c).
+
+Definition sum_barysum {I: BInterval.type} {A B: Baryspace.type I} (t: I)
+  (p1 p2 : SumBarySpace A B) := 
+match p1 with
+| (x, r, y) => match p2 with 
+| (x', s, y') => (barysum (bracket t (!r) (!s)) x x', (barysumI t r s), (barysum (bracket t r s) y y'))
+end end.
+
+Lemma sum_barysum0: ∀ {I: BInterval.type} {A B: Baryspace.type I} (p1 p2 : SumBarySpace A B),
+  sum_barysum 0 p1 p2 = p1.
+Proof.
+intros.
+destruct p2. destruct p1. unfold sum_barysum. 
+rewrite !bracket_zero. apply meet_0_absorb. apply meet_0_absorb. 
+unfold barysumI. f_equal; apply barysum0. 
+Qed.
+
+Lemma sum_barysumid: ∀ {I: BInterval.type} {A B: Baryspace.type I}  (p1 : SumBarySpace A B) (t: I),
+  sum_barysum t p1 p1 = p1.
+Proof.
+intros.
+destruct p1. unfold sum_barysum. unfold barysumI. rewrite !barysumid. reflexivity.
+Qed.
+
+Lemma sum_barysuminv: ∀ {I: BInterval.type} {A B: Baryspace.type I} (p1 p2 : SumBarySpace A B) (t: I) ,
+  sum_barysum t p1 p2 = sum_barysum (!t) p2 p1.
+Proof.
+intros.
+destruct p2. destruct p1. simpl. unfold barysumI. 
+f_equal; try rewrite <- (bracket_inv _ _ (t)); rewrite barysuminv; reflexivity.
+Qed.
+
+Lemma sum_barysumassoc: ∀{I: BInterval.type} {A B: Baryspace.type I} (a b c: SumBarySpace A B) (p q r s: I),
+s = (meet p q) -> meet p (!q) = meet r (!s) ->  
+      sum_barysum p a (sum_barysum q b c) = sum_barysum s (sum_barysum r a b) c.
+Proof.
+intros.
+destruct a,b,c.
+unfold sum_barysum. 
+assert (barysumI p p0 (barysumI q p1 p2) = barysumI s (barysumI r p0 p1) p2).
+{
+  unfold barysumI.
+  apply (barysumassoc (p0:_BaryIntv.sort I)). apply H. apply H0.
+} 
+f_equal. 
+- unfold barysumI. rewrite !inv_bary_dist. apply barysumassoc.
+apply bracket_decomp2. apply H. apply H0.
+symmetry. apply bracket_decomp1. apply H. apply H0.
+- apply H1.
+- unfold barysumI. apply barysumassoc.
+apply bracket_decomp2. apply H. apply H0.
+symmetry. apply bracket_decomp1. apply H. apply H0.
+Qed.
+
+HB.instance Definition sum_baryspace_barycentric {I: BInterval.type} (A B: Baryspace.type I) := Baryspace_of.Build 
+  I (SumBarySpace A B) sum_barysum sum_barysum0 sum_barysumid sum_barysuminv sum_barysumassoc.
 
 End BIntv.
 
