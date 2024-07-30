@@ -185,6 +185,9 @@ HB.mixin Record BInterval_of I of _BaryIntv_of I of Interval_of I:= {
 
 HB.structure Definition BInterval := { I of BInterval_of I &}.
 
+
+Notation "[ a , b ]_ c" := (bracket c a b) (at level 40).
+
 Theorem meet_0_absorb: ∀ {I: BInterval.type} (a:I), meet (0:I) a = (0:I).
 Proof.
 intros. rewrite meet_sum0. rewrite barysum0. reflexivity.
@@ -215,7 +218,7 @@ Example test2 (I : BInterval.type) (p: Interval.sort I) (A: Baryspace.type I) (a
 Example test3 (I : BInterval.type) (p: I) (A: Baryspace.type I) (a: A) := 
   barysum (barysum p (p: _BaryIntv.sort I) (p: _BaryIntv.sort I)) a a.
 
-Lemma bracket_id: ∀ (I: BInterval.type) (a b: I), a <> 0 -> bracket b a a = b.
+Lemma bracket_id: ∀ (I: BInterval.type) (a b: I), a <> 0 -> [a, a]_b = b.
 Proof.
 intros. 
 specialize (bracket_basic a a b). 
@@ -317,6 +320,12 @@ apply meet0 in H as H1. destruct H1.
 - rewrite H0. rewrite meetrC. apply meet_0_absorb.
 Qed.
 
+
+Lemma bracket_1_1: ∀ {I:BInterval.type} (a: I), [1,1]_ a = a.
+Proof.
+  intros. specialize (bracket_basic 1 1 a). rewrite barysumid. rewrite <- !(meetrC 1 _).
+  rewrite !meetl1. tauto.
+Qed.
 
 
 Lemma bracket_decomp1_: ∀ (I:BInterval.type) p q r s (x y z: _BaryIntv.sort I),
@@ -560,11 +569,21 @@ Record type_quotient (T : Type) (eqv : T -> T -> Prop)
     compatible _ _ eqv f -> quo -> R;
   quo_lift_prop : forall (R : Type) (f : T -> R) (Hf : compatible _ _ eqv f),
     forall (x : T),  (quo_lift _ f Hf) (class x) = f x;
+
+  
+  (* 
   quo_surj : forall (c : quo), 
-    exists x : T, c = class x
+    exists x : T, c = class x; 
+  Here, instead of simply stating that `class` is surjective, 
+  we require that `class` have a right inverse.
+  These two requirements are equal assuming the axiom of choice.
+  *)
+  quo_sur (c:quo) : T;
+  quo_sur_t (c:quo) : c = class (quo_sur c)
 }.
 
-(*The existence of such quotient structure is given by an axiom,
+(*
+The existence of such quotient structure is given by an axiom,
 as in Cyril Cohen's work.
 *)
 
@@ -584,6 +603,7 @@ Record BEquiv {I : BInterval.type} {A : Baryspace.type I} := instBequiv{
   Qs := quotient A R Equiv
 }.
 
+(*The equivalence relation that defines A⊕B*)
 Inductive SumBaryR {I : BInterval.type} {A B: Baryspace.type I} : (SumBarySpace A B) ->  (SumBarySpace A B) -> Prop := 
   | Refl (p: I) (a: A) (b: B): SumBaryR (a,p,b) (a,p,b)
   | A0 (a: A) (b b': B): SumBaryR (a,0,b) (a,0,b')
@@ -617,7 +637,7 @@ Proof.
     + unfold barysumI. rewrite barysumid. apply B1.
 Qed.
   
-
+(*The problem here is that the Interval cannot be singleton*)
 Lemma sum_baryr_eqv : ∀ {I : BInterval.type} {A B: Baryspace.type I}, equiv (SumBarySpace A B) SumBaryR.
 Proof.
 Admitted.
@@ -687,11 +707,11 @@ Proof.
 unfold compatible.
 intros. 
 unfold quot_sum_part2. 
-unfold quot_sum_lift1. unfold quot_sum_part. specialize (quo_surj _ _ _ (Qs be) ac) as Hs.
-destruct Hs. rewrite H0. 
+unfold quot_sum_lift1. unfold quot_sum_part. specialize (quo_sur_t _ _ _ (Qs be) ac) as Hs.
+rewrite Hs. 
 rewrite (quo_lift_prop _ _ _ (Qs be) (A->(Qs be)) _ (quot_sum_part1_compat be p)). 
 unfold quot_sum_part. apply quo_comp. apply (Compat be). 
-- specialize (Equiv be) as He. destruct He. apply H1. 
+- specialize (Equiv be) as He. destruct He. apply H0.
 - apply H.
 Qed.
 
@@ -707,7 +727,7 @@ The barycentric sum on the quotient space has the property that
 [x] +_r [y] = [x +_r y]
 *)
 
-Lemma quotBarysum_corrresponds {I: BInterval.type} {A: Baryspace.type I}
+Lemma quotBarysum_corresponds {I: BInterval.type} {A: Baryspace.type I}
   (be: BEquiv I A) (p: I) (a b: A):
     (Qs be) (barysum p a b) = quotBarysum be p (Qs be a) (Qs be b).
 Proof.
@@ -723,10 +743,10 @@ Definition quot_add0 {I: BInterval.type} {A: Baryspace.type I}
     quotBarysum be 0 ac bc = ac.
 Proof. 
 intros.
-specialize (quo_surj _ _ _ (Qs be) ac) as H1.
-specialize (quo_surj _ _ _ (Qs be) bc) as H2.
-destruct H1, H2. rewrite H H0. 
-rewrite <- quotBarysum_corrresponds. rewrite barysum0.
+specialize (quo_sur_t _ _ _ (Qs be) ac) as H1.
+specialize (quo_sur_t _ _ _ (Qs be) bc) as H2.
+rewrite H1 H2.
+rewrite <- quotBarysum_corresponds. rewrite barysum0.
 reflexivity.
 Qed.
 
@@ -735,9 +755,9 @@ Definition quot_addid {I: BInterval.type} {A: Baryspace.type I} (be: BEquiv I A)
     quotBarysum be p ac ac = ac.
 Proof. 
 intros.
-specialize (quo_surj _ _ _ (Qs be) ac) as H1.
-destruct H1. rewrite H. 
-rewrite <- quotBarysum_corrresponds. rewrite barysumid.
+specialize (quo_sur_t _ _ _ (Qs be) ac) as H1.
+rewrite H1. 
+rewrite <- quotBarysum_corresponds. rewrite barysumid.
 reflexivity.
 Qed.
 
@@ -746,10 +766,10 @@ Definition quot_addinv {I: BInterval.type} {A: Baryspace.type I}
     quotBarysum be p ac bc = quotBarysum be (inv p) bc ac.
 Proof.
 intros.
-specialize (quo_surj _ _ _ (Qs be) ac) as H1.
-specialize (quo_surj _ _ _ (Qs be) bc) as H2.
-destruct H1, H2. rewrite H H0. 
-rewrite <- !quotBarysum_corrresponds. f_equal. 
+specialize (quo_sur_t _ _ _ (Qs be) ac) as H1.
+specialize (quo_sur_t _ _ _ (Qs be) bc) as H2.
+rewrite H1 H2. 
+rewrite <- !quotBarysum_corresponds. f_equal. 
 apply barysuminv.
 Qed.
 
@@ -760,21 +780,150 @@ Definition quot_addassoc {I: BInterval.type} {A: Baryspace.type I}
       quotBarysum be s (quotBarysum be r ac bc) cc.
 Proof.
 intros.
-specialize (quo_surj _ _ _ (Qs be) ac) as H2.
-specialize (quo_surj _ _ _ (Qs be) bc) as H3.
-specialize (quo_surj _ _ _ (Qs be) cc) as H4.
-destruct H2, H3, H4. rewrite H1 H2 H3. 
-rewrite <- !quotBarysum_corrresponds. f_equal. apply barysumassoc;
+specialize (quo_sur_t _ _ _ (Qs be) ac) as H2.
+specialize (quo_sur_t _ _ _ (Qs be) bc) as H3.
+specialize (quo_sur_t _ _ _ (Qs be) cc) as H4.
+rewrite H2 H3 H4. 
+rewrite <- !quotBarysum_corresponds. f_equal. apply barysumassoc;
 assumption.
 Qed.
 
-Definition quot_is_bary {I: BInterval.type} {A: Baryspace.type I} {be: BEquiv I A} := Baryspace_of.Build 
+HB.instance Definition quot_is_bary {I: BInterval.type} {A: Baryspace.type I} {be: BEquiv I A} := Baryspace_of.Build 
 I (Qs be) (quotBarysum be) (quot_add0 be) (quot_addid be) (quot_addinv be) (quot_addassoc be). 
 
-Definition SumSpace {I: BInterval.type} (A B: Baryspace.type I) := Baryspace_of.axioms_ I (sum_bary_bequiv A B).
+Example test_sum_space {I: BInterval.type} (A B: Baryspace.type I) := Baryspace_of.axioms_ I (Qs (sum_bary_bequiv A B)).
 
 Definition homomorphic {I: BInterval.type} {A B: Baryspace.type I}
   (phi: A -> B) : Prop := ∀ p x y, barysum p (phi x) (phi y) = phi (barysum p x y).
 
-Definition sum_to_AB {I: BInterval.type} {A B X: Baryspace.type I} 
-  (phi: Qs (sum_bary_bequiv A B) -> X) :  (A -> X).
+(*
+homomorphisms 
+  φA : A -> X, φB: B->X
+naturally induces homomorphism
+  φ : A⊕B -> X
+*)
+Definition AB_to_sum {I: BInterval.type} {A B X: Baryspace.type I} 
+  (phia: A -> X)  (phib : B -> X) : (Qs (sum_bary_bequiv A B) -> X) :=
+  fun p => match quo_sur _ _ _ _ p with
+  | (a,t,b) => barysum t (phia a) (phib b)
+end.
+
+Check AB_to_sum.
+
+(*
+homomorphisms 
+  φ : A⊕B -> X
+induces homomorphism
+  φA : A -> X, φB: B->X
+on the condition that A and B are not empty. 
+In constructive logic, we need to provide an instance of both A
+and B to construct such homomorphism
+*)
+
+Definition sum_to_A {I: BInterval.type} {A B X: Baryspace.type I} 
+  (b: B)
+  (phi: Qs (sum_bary_bequiv A B) -> X) :  (A -> X) := 
+    fun a => phi (class (Qs (sum_bary_bequiv A B)) (a,0,b)).
+
+Definition sum_to_B {I: BInterval.type} {A B X: Baryspace.type I} 
+  (a: A)
+  (phi: Qs (sum_bary_bequiv A B) -> X) :  (B -> X) := 
+    fun b => phi (class (Qs (sum_bary_bequiv A B)) (a,1,b)).
+
+  
+(*The induced functions are indeed homomorphisms*)
+Lemma AB_to_sum_homomorphic {I: BInterval.type} {A B X: Baryspace.type I} 
+  (phia: A -> X)  (phib : B -> X): homomorphic phia -> homomorphic phib -> 
+  homomorphic ((AB_to_sum phia phib)).
+Proof.
+  unfold homomorphic.
+  intros.
+  unfold AB_to_sum. 
+  destruct (quo_sur _ _ _ _ x) eqn: HDx. destruct (quo_sur _ _ _ _ y) eqn: HDy.
+  intros. rewrite barysum_2. rewrite H. rewrite H0. 
+  destruct (quo_sur _ _ _ _ (barysum p x y)) eqn: HDxy.
+  specialize (quo_sur_t _ _ _ _ x). specialize (quo_sur_t _ _ _ _ y). specialize (quo_sur_t _ _ _ _ (barysum p x y)).
+  rewrite HDx. rewrite HDy. rewrite HDxy. 
+  intros.
+  rewrite H2 in H1. rewrite H3 in H1.
+  assert (barysum p (Qs (sum_bary_bequiv A B) (a, p0, b))
+  (Qs (sum_bary_bequiv A B) (a0, p1, b0)) = Qs (sum_bary_bequiv A B) (barysum p (a, p0, b)
+  (a0, p1, b0))). {
+    symmetry. apply quotBarysum_corresponds.
+  }
+  rewrite H4 in H1. apply quo_comp_rev in H1 as Hcomp. 
+  rewrite sum_barysum_expl in Hcomp. unfold sum_barysum in Hcomp.
+  inversion Hcomp. 
+  - reflexivity.
+  - rewrite !barysum0. reflexivity.
+  - rewrite !barysum1. reflexivity.
+Qed.
+
+Lemma sum_to_A_homomorphic  {I: BInterval.type} {A B X: Baryspace.type I} (b: B) 
+  (phi: Qs (sum_bary_bequiv A B) -> X) : homomorphic phi 
+    -> homomorphic (sum_to_A b phi).
+Proof.
+  unfold homomorphic.
+  intros.
+  unfold sum_to_A. rewrite H.
+  assert( (barysum p (Qs (sum_bary_bequiv A B) (x, 0, b))(Qs (sum_bary_bequiv A B)
+  (y, 0, b))) = Qs (sum_bary_bequiv A B) (barysum p (x,0,b) (y,0,b))).
+  {
+    symmetry. apply quotBarysum_corresponds.
+  }
+  rewrite H0. rewrite sum_barysum_expl. unfold sum_barysum. unfold barysumI.
+  rewrite !barysumid. rewrite <- !inv_1_0. rewrite bracket_1_1. reflexivity.
+Qed.
+
+Lemma sum_to_B_homomorphic  {I: BInterval.type} {A B X: Baryspace.type I} (a: A) 
+  (phi: Qs (sum_bary_bequiv A B) -> X) : homomorphic phi 
+    -> homomorphic (sum_to_B a phi).
+Proof.
+  unfold homomorphic.
+  intros.
+  unfold sum_to_B. rewrite H.
+  assert( (barysum p (Qs (sum_bary_bequiv A B) (a, 1, x))(Qs (sum_bary_bequiv A B)
+  (a, 1, y))) = Qs (sum_bary_bequiv A B) (barysum p (a,1,x) (a,1,y))).
+  {
+    symmetry. apply quotBarysum_corresponds.
+  }
+  rewrite H0. rewrite sum_barysum_expl. unfold sum_barysum. unfold barysumI.
+  rewrite !barysumid. rewrite bracket_1_1. reflexivity.
+Qed.
+
+
+(*
+There is a one-to-one correspondence between 
+(φA,φB) and φ
+That is, 
+Bar(A⊕B,X) ≅ Bar(A,X) × Bar(B,X)
+*)
+
+Theorem AB_sum_isomorphism {I: BInterval.type} {A B X: Baryspace.type I} (a: A) (b : B)
+  (phi: Qs (sum_bary_bequiv A B) -> X) (Hom: homomorphic phi):
+   AB_to_sum (sum_to_A b phi) (sum_to_B a phi) = phi.
+Proof.
+  unfold homomorphic in Hom. apply functional_extensionality.
+  intros. unfold sum_to_A. unfold sum_to_B. unfold AB_to_sum.
+  destruct (quo_sur _ _ _ _ x) eqn: Hx. rewrite Hom. 
+  assert ((barysum p
+  (Qs (sum_bary_bequiv A B) (a0, 0, b)) (Qs (sum_bary_bequiv A B) (a, 1, b0))) = Qs (sum_bary_bequiv A B) (barysum p (a0, 0, b) (a, 1, b0))).
+  {
+    symmetry. apply quotBarysum_corresponds.
+  }
+  rewrite H. rewrite sum_barysum_expl. unfold sum_barysum. 
+  rewrite <- inv_0_1. rewrite <-inv_1_0.
+  rewrite bracket_zero. rewrite meetrC. apply meet_0_absorb. unfold barysumI.
+  rewrite <- (meet_sum0 p). rewrite (meetrC p 1). rewrite meetl1.
+  specialize (quo_sur_t _ _ _ _ x) as H1. rewrite Hx in H1.
+  destruct (eq0_i_decidable I p). 
+  - rewrite H0. rewrite bracket_zero. apply meet_0_absorb. rewrite barysum0. 
+    rewrite H1. f_equal. apply quo_comp. rewrite H0. apply A0.
+  - rewrite bracket_0_1. apply H0. rewrite barysum0. rewrite barysum1. rewrite H1.
+    reflexivity.
+Qed.
+
+  
+  
+
+  
